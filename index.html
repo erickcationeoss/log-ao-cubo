@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockFlow | Gestão Inteligente de Estoque</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Tela de Autenticação -->
+        <div id="auth-screen" class="screen">
+            <div class="auth-card">
+                <div class="logo">
+                    <h1>StockFlow</h1>
+                    <p>Gestão inteligente de estoque</p>
+                </div>
+                
+                <form id="auth-form">
+                    <div class="input-group">
+                        <input type="email" id="email" placeholder=" " required>
+                        <label for="email">E-mail</label>
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="password" id="password" placeholder=" " required>
+                        <label for="password">Senha</label>
+                    </div>
+                    
+                    <button type="submit" id="auth-button" class="btn-primary">
+                        <span class="button-text">Entrar</span>
+                        <div class="button-loader hidden"></div>
+                    </button>
+                </form>
+                
+                <p class="auth-switch">
+                    Não tem conta? <a href="#" id="switch-auth-mode">Cadastre-se</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Tela Principal da Aplicação -->
+        <div id="app-screen" class="screen hidden">
+            <header class="header">
+                <div class="header-content">
+                    <h2>Estoque</h2>
+                    <button id="logout-btn" class="btn-secondary">Sair</button>
+                </div>
+            </header>
+
+            <main class="main-content">
+                <!-- Card de Itens Críticos -->
+                <section class="card">
+                    <div class="card-header">
+                        <h3>Itens para Repor</h3>
+                        <span class="badge" id="critical-count">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="critical-items" class="items-list">
+                            <div class="empty-state">
+                                <p>Nenhum item crítico no momento</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Card de Todos os Produtos -->
+                <section class="card">
+                    <div class="card-header">
+                        <h3>Todos os Produtos</h3>
+                        <button id="add-product-btn" class="btn-icon">+</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="products-list" class="items-list">
+                            <div class="empty-state">
+                                <p>Nenhum produto cadastrado</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- Modal de Adicionar Produto -->
+        <div id="product-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Novo Produto</h3>
+                    <button id="close-modal" class="btn-icon">×</button>
+                </div>
+                <form id="product-form">
+                    <div class="input-group">
+                        <input type="text" id="product-name" placeholder=" " required>
+                        <label for="product-name">Nome do Produto</label>
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="number" id="initial-stock" placeholder=" " value="0" required>
+                        <label for="initial-stock">Estoque Inicial</label>
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="number" id="replenishment-time" placeholder=" " value="7" required>
+                        <label for="replenishment-time">Tempo de Reposição (dias)</label>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Adicionar Produto</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>
