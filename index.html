@@ -3,115 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockFlow | Gestão Inteligente de Estoque</title>
+    <title>Sistema de Logística</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Biblioteca do Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="container">
-        <!-- Tela de Autenticação -->
-        <div id="auth-screen" class="screen">
-            <div class="auth-card">
-                <div class="logo">
-                    <h1>StockFlow</h1>
-                    <p>Gestão inteligente de estoque</p>
+        <!-- Header com navegação -->
+        <header>
+            <h1>Sistema de Logística</h1>
+            <nav>
+                <button id="btnEntregas">Entregas</button>
+                <button id="btnEntregadores">Entregadores</button>
+                <button id="btnRelatorios">Relatórios</button>
+                <button id="btnLogout" class="logout">Sair</button>
+            </nav>
+        </header>
+
+        <!-- Formulário de Login -->
+        <div id="loginSection" class="section">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input type="email" id="email" placeholder="E-mail" required>
+                <input type="password" id="password" placeholder="Senha" required>
+                <button type="submit">Entrar</button>
+            </form>
+            <p id="loginMessage"></p>
+        </div>
+
+        <!-- Dashboard Principal (inicialmente oculto) -->
+        <div id="dashboard" class="section hidden">
+            <h2>Dashboard</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Entregas Hoje</h3>
+                    <p id="statsToday">0</p>
                 </div>
-                
-                <form id="auth-form">
-                    <div class="input-group">
-                        <input type="email" id="email" placeholder=" " required>
-                        <label for="email">E-mail</label>
-                    </div>
-                    
-                    <div class="input-group">
-                        <input type="password" id="password" placeholder=" " required>
-                        <label for="password">Senha</label>
-                    </div>
-                    
-                    <button type="submit" id="auth-button" class="btn-primary">
-                        <span class="button-text">Entrar</span>
-                        <div class="button-loader hidden"></div>
-                    </button>
-                </form>
-                
-                <p class="auth-switch">
-                    Não tem conta? <a href="#" id="switch-auth-mode">Cadastre-se</a>
-                </p>
+                <div class="stat-card">
+                    <h3>Entregas Pendentes</h3>
+                    <p id="statsPending">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Entregas Concluídas</h3>
+                    <p id="statsCompleted">0</p>
+                </div>
             </div>
-        </div>
 
-        <!-- Tela Principal da Aplicação -->
-        <div id="app-screen" class="screen hidden">
-            <header class="header">
-                <div class="header-content">
-                    <h2>Estoque</h2>
-                    <button id="logout-btn" class="btn-secondary">Sair</button>
+            <!-- Gestão de Entregas -->
+            <div id="entregasSection">
+                <h3>Gestão de Entregas</h3>
+                <button id="btnNovaEntrega">Nova Entrega</button>
+                
+                <div id="formEntrega" class="hidden">
+                    <h4>Nova Entrega</h4>
+                    <form id="entregaForm">
+                        <input type="text" id="destinatario" placeholder="Destinatário" required>
+                        <input type="text" id="endereco" placeholder="Endereço" required>
+                        <input type="text" id="contato" placeholder="Contato" required>
+                        <select id="entregadorSelect" required>
+                            <option value="">Selecione um entregador</option>
+                        </select>
+                        <button type="submit">Salvar</button>
+                        <button type="button" id="btnCancelar">Cancelar</button>
+                    </form>
                 </div>
-            </header>
 
-            <main class="main-content">
-                <!-- Card de Itens Críticos -->
-                <section class="card">
-                    <div class="card-header">
-                        <h3>Itens para Repor</h3>
-                        <span class="badge" id="critical-count">0</span>
-                    </div>
-                    <div class="card-body">
-                        <div id="critical-items" class="items-list">
-                            <div class="empty-state">
-                                <p>Nenhum item crítico no momento</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Card de Todos os Produtos -->
-                <section class="card">
-                    <div class="card-header">
-                        <h3>Todos os Produtos</h3>
-                        <button id="add-product-btn" class="btn-icon">+</button>
-                    </div>
-                    <div class="card-body">
-                        <div id="products-list" class="items-list">
-                            <div class="empty-state">
-                                <p>Nenhum produto cadastrado</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </main>
-        </div>
-
-        <!-- Modal de Adicionar Produto -->
-        <div id="product-modal" class="modal hidden">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Novo Produto</h3>
-                    <button id="close-modal" class="btn-icon">×</button>
+                <div id="listaEntregas">
+                    <h4>Entregas</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Destinatário</th>
+                                <th>Endereço</th>
+                                <th>Status</th>
+                                <th>Entregador</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="entregasTableBody">
+                            <!-- As entregas serão inseridas aqui via JavaScript -->
+                        </tbody>
+                    </table>
                 </div>
-                <form id="product-form">
-                    <div class="input-group">
-                        <input type="text" id="product-name" placeholder=" " required>
-                        <label for="product-name">Nome do Produto</label>
-                    </div>
-                    
-                    <div class="input-group">
-                        <input type="number" id="initial-stock" placeholder=" " value="0" required>
-                        <label for="initial-stock">Estoque Inicial</label>
-                    </div>
-                    
-                    <div class="input-group">
-                        <input type="number" id="replenishment-time" placeholder=" " value="7" required>
-                        <label for="replenishment-time">Tempo de Reposição (dias)</label>
-                    </div>
-                    
-                    <button type="submit" class="btn-primary">Adicionar Produto</button>
-                </form>
+            </div>
+
+            <!-- Gestão de Entregadores -->
+            <div id="entregadoresSection" class="hidden">
+                <h3>Gestão de Entregadores</h3>
+                <!-- Conteúdo similar ao de entregas -->
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 </body>
 </html>
