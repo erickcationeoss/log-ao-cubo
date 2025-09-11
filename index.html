@@ -3,74 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Logística</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Biblioteca do Supabase -->
+    <title>Sistema de Logística | Premium</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <!-- Header com navegação -->
         <header>
-            <h1>Sistema de Logística</h1>
+            <div class="logo">
+                <i class="fas fa-shipping-fast logo-icon"></i>
+                <h1>Logística Premium</h1>
+            </div>
             <nav>
-                <button id="btnEntregas">Entregas</button>
-                <button id="btnEntregadores">Entregadores</button>
-                <button id="btnRelatorios">Relatórios</button>
-                <button id="btnLogout" class="logout">Sair</button>
+                <button id="btnEntregas"><i class="fas fa-box"></i> Entregas</button>
+                <button id="btnEntregadores"><i class="fas fa-truck"></i> Entregadores</button>
+                <button id="btnRelatorios"><i class="fas fa-chart-line"></i> Relatórios</button>
+                <button id="btnLogout" class="logout"><i class="fas fa-sign-out-alt"></i> Sair</button>
             </nav>
         </header>
 
         <!-- Formulário de Login -->
-        <div id="loginSection" class="section">
-            <h2>Login</h2>
+        <div id="loginSection" class="section fade-in-up">
+            <h2><i class="fas fa-lock"></i> Acesso Restrito</h2>
             <form id="loginForm">
-                <input type="email" id="email" placeholder="E-mail" required>
-                <input type="password" id="password" placeholder="Senha" required>
-                <button type="submit">Entrar</button>
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" placeholder="Sua senha" required>
+                </div>
+                <button type="submit"><i class="fas fa-sign-in-alt"></i> Entrar</button>
             </form>
-            <p id="loginMessage"></p>
+            <div id="loginMessage" class="message"></div>
         </div>
 
         <!-- Dashboard Principal (inicialmente oculto) -->
-        <div id="dashboard" class="section hidden">
-            <h2>Dashboard</h2>
-            <div class="stats">
-                <div class="stat-card">
-                    <h3>Entregas Hoje</h3>
-                    <p id="statsToday">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Entregas Pendentes</h3>
-                    <p id="statsPending">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Entregas Concluídas</h3>
-                    <p id="statsCompleted">0</p>
+        <div id="dashboard" class="hidden">
+            <!-- Estatísticas -->
+            <div class="section fade-in">
+                <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3>Entregas Hoje</h3>
+                        <p id="statsToday">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Entregas Pendentes</h3>
+                        <p id="statsPending">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Entregas Concluídas</h3>
+                        <p id="statsCompleted">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Taxa de Sucesso</h3>
+                        <p id="statsSuccessRate">0%</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Gestão de Entregas -->
-            <div id="entregasSection">
-                <h3>Gestão de Entregas</h3>
-                <button id="btnNovaEntrega">Nova Entrega</button>
+            <div id="entregasSection" class="section fade-in">
+                <h2><i class="fas fa-box"></i> Gestão de Entregas</h2>
+                <button id="btnNovaEntrega"><i class="fas fa-plus"></i> Nova Entrega</button>
                 
                 <div id="formEntrega" class="hidden">
-                    <h4>Nova Entrega</h4>
+                    <h3><i class="fas fa-edit"></i> Nova Entrega</h3>
                     <form id="entregaForm">
-                        <input type="text" id="destinatario" placeholder="Destinatário" required>
-                        <input type="text" id="endereco" placeholder="Endereço" required>
-                        <input type="text" id="contato" placeholder="Contato" required>
-                        <select id="entregadorSelect" required>
-                            <option value="">Selecione um entregador</option>
-                        </select>
-                        <button type="submit">Salvar</button>
-                        <button type="button" id="btnCancelar">Cancelar</button>
+                        <div class="form-group">
+                            <label for="destinatario">Destinatário</label>
+                            <input type="text" id="destinatario" placeholder="Nome do destinatário" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endereco">Endereço</label>
+                            <input type="text" id="endereco" placeholder="Endereço completo" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contato">Contato</label>
+                            <input type="text" id="contato" placeholder="Telefone ou e-mail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="entregadorSelect">Entregador</label>
+                            <select id="entregadorSelect" required>
+                                <option value="">Selecione um entregador</option>
+                            </select>
+                        </div>
+                        <button type="submit"><i class="fas fa-save"></i> Salvar</button>
+                        <button type="button" id="btnCancelar" class="secondary"><i class="fas fa-times"></i> Cancelar</button>
                     </form>
                 </div>
 
                 <div id="listaEntregas">
-                    <h4>Entregas</h4>
+                    <h3><i class="fas fa-list"></i> Lista de Entregas</h3>
                     <table>
                         <thead>
                             <tr>
@@ -90,9 +118,10 @@
             </div>
 
             <!-- Gestão de Entregadores -->
-            <div id="entregadoresSection" class="hidden">
-                <h3>Gestão de Entregadores</h3>
+            <div id="entregadoresSection" class="section fade-in hidden">
+                <h2><i class="fas fa-truck"></i> Gestão de Entregadores</h2>
                 <!-- Conteúdo similar ao de entregas -->
+                <p>Funcionalidade em desenvolvimento...</p>
             </div>
         </div>
     </div>

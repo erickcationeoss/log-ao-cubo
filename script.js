@@ -1,5 +1,5 @@
+// script.js
 // Inicialização do Supabase
-// SEU_SUPABASE_URL e SEU_SUPABASE_ANON_KEY devem ser substituídos pelos valores reais
 const supabaseUrl = 'SEU_SUPABASE_URL';
 const supabaseAnonKey = 'SEU_SUPABASE_ANON_KEY';
 const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
@@ -11,25 +11,55 @@ const loginForm = document.getElementById('loginForm');
 const loginMessage = document.getElementById('loginMessage');
 const btnLogout = document.getElementById('btnLogout');
 const btnEntregas = document.getElementById('btnEntregas');
+const btnEntregadores = document.getElementById('btnEntregadores');
+const btnRelatorios = document.getElementById('btnRelatorios');
 const btnNovaEntrega = document.getElementById('btnNovaEntrega');
 const formEntrega = document.getElementById('formEntrega');
 const entregaForm = document.getElementById('entregaForm');
+const btnCancelar = document.getElementById('btnCancelar');
 const entregasTableBody = document.getElementById('entregasTableBody');
 const entregadorSelect = document.getElementById('entregadorSelect');
 const statsToday = document.getElementById('statsToday');
 const statsPending = document.getElementById('statsPending');
 const statsCompleted = document.getElementById('statsCompleted');
+const statsSuccessRate = document.getElementById('statsSuccessRate');
+const entregasSection = document.getElementById('entregasSection');
+const entregadoresSection = document.getElementById('entregadoresSection');
 
-// Verificar se o usuário já está logado ao carregar a página
-document.addEventListener('DOMContentLoaded', () => {
-    const user = supabase.auth.user();
-    if (user) {
+// Estado da aplicação
+let currentUser = null;
+let entregas = [];
+let entregadores = [];
+
+// Verificar se o usuário já está logado
+async function checkAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        currentUser = session.user;
         showDashboard();
-        loadEntregas();
-        loadEntregadores();
-        loadStats();
+        loadData();
+    } else {
+        showLogin();
     }
-});
+}
+
+// Mostrar formulário de login
+function showLogin() {
+    loginSection.classList.remove('hidden');
+    dashboard.classList.add('hidden');
+}
+
+// Mostrar dashboard
+function showDashboard() {
+    loginSection.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+    
+    // Mostrar seções com animação
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(section => {
+        section.classList.add('visible');
+    });
+}
 
 // Login
 loginForm.addEventListener('submit', async (e) => {
@@ -38,166 +68,40 @@ loginForm.addEventListener('submit', async (e) => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     
-    const { user, error } = await supabase.auth.signIn({
+    const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
     });
     
     if (error) {
-        showMessage(error.message, 'error');
+        showMessage(loginMessage, error.message, 'error');
     } else {
+        currentUser = data.user;
         showDashboard();
-        loadEntregas();
-        loadEntregadores();
-        loadStats();
+        loadData();
     }
 });
 
 // Logout
 btnLogout.addEventListener('click', async () => {
     await supabase.auth.signOut();
+    currentUser = null;
     showLogin();
+    resetForm(loginForm);
 });
 
-// Mostrar formulário de nova entrega
-btnNovaEntrega.addEventListener('click', () => {
-    formEntrega.classList.remove('hidden');
-});
-
-// Cancelar nova entrega
-document.getElementById('btnCancelar').addEventListener('click', () => {
-    formEntrega.classList.add('hidden');
-    entregaForm.reset();
-});
-
-// Adicionar nova entrega
-entregaForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const destinatario = document.getElementById('destinatario').value;
-    const endereco = document.getElementById('endereco').value;
-    const contato = document.getElementById('contato').value;
-    const entregador_id = document.getElementById('entregadorSelect').value;
-    
-    const { data, error } = await supabase
-        .from('entregas')
-        .insert([
-            { 
-                destinatario, 
-                endereco, 
-                contato, 
-                entregador_id,
-                status: 'pendente'
-            }
-        ]);
-    
-    if (error) {
-        showMessage(error.message, 'error');
-    } else {
-        showMessage('Entrega criada com sucesso!', 'success');
-        formEntrega.classList.add('hidden');
-        entregaForm.reset();
-        loadEntregas();
-        loadStats();
-    }
-});
-
-// Função para carregar entregas
-async function loadEntregas() {
-    const { data: entregas, error } = await supabase
-        .from('entregas')
-        .select(`
-            id,
-            destinatario,
-            endereco,
-            status,
-            created_at,
-            entregadores (nome)
-        `)
-        .order('created_at', { ascending: false });
-    
-    if (error) {
-        console.error('Erro ao carregar entregas:', error);
-        return;
-    }
-    
-    entregasTableBody.innerHTML = '';
-    
-    entregas.forEach(entrega => {
-        const row = document.createElement('tr');
-        
-        row.innerHTML = `
-            <td>${entrega.id.substring(0, 8)}</td>
-            <td>${entrega.destinatario}</td>
-            <td>${entrega.endereco}</td>
-            <td>
-                <select class="status-select" data-id="${entrega.id}">
-                    <option value="pendente" ${entrega.status === 'pendente' ? 'selected' : ''}>Pendente</option>
-                    <option value="coletado" ${entrega.status === 'coletado' ? 'selected' : ''}>Coletado</option>
-                    <option value="em_transito" ${entrega.status === 'em_transito' ? 'selected' : ''}>Em Trânsito</option>
-                    <option value="entregue" ${entrega.status === 'entregue' ? 'selected' : ''}>Entregue</option>
-                    <option value="cancelado" ${entrega.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
-                </select>
-            </td>
-            <td>${entrega.entregadores ? entrega.entregadores.nome : 'Não atribuído'}</td>
-            <td>
-                <button class="btn-delete" data-id="${entrega.id}">Excluir</button>
-            </td>
-        `;
-        
-        entregasTableBody.appendChild(row);
-    });
-    
-    // Adicionar event listeners para mudança de status
-    document.querySelectorAll('.status-select').forEach(select => {
-        select.addEventListener('change', async (e) => {
-            const entregaId = e.target.getAttribute('data-id');
-            const novoStatus = e.target.value;
-            
-            const { error } = await supabase
-                .from('entregas')
-                .update({ status: novoStatus })
-                .eq('id', entregaId);
-            
-            if (error) {
-                console.error('Erro ao atualizar status:', error);
-                showMessage('Erro ao atualizar status', 'error');
-            } else {
-                showMessage('Status atualizado com sucesso', 'success');
-                loadStats();
-            }
-        });
-    });
-    
-    // Adicionar event listeners para exclusão
-    document.querySelectorAll('.btn-delete').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            const entregaId = e.target.getAttribute('data-id');
-            
-            if (confirm('Tem certeza que deseja excluir esta entrega?')) {
-                const { error } = await supabase
-                    .from('entregas')
-                    .delete()
-                    .eq('id', entregaId);
-                
-                if (error) {
-                    console.error('Erro ao excluir entrega:', error);
-                    showMessage('Erro ao excluir entrega', 'error');
-                } else {
-                    showMessage('Entrega excluída com sucesso', 'success');
-                    loadEntregas();
-                    loadStats();
-                }
-            }
-        });
-    });
+// Carregar dados iniciais
+async function loadData() {
+    await loadEntregadores();
+    await loadEntregas();
+    updateStats();
 }
 
-// Função para carregar entregadores no select
+// Carregar entregadores
 async function loadEntregadores() {
-    const { data: entregadores, error } = await supabase
+    const { data, error } = await supabase
         .from('entregadores')
-        .select('id, nome')
+        .select('*')
         .order('nome');
     
     if (error) {
@@ -205,6 +109,12 @@ async function loadEntregadores() {
         return;
     }
     
+    entregadores = data;
+    populateEntregadorSelect();
+}
+
+// Popular select de entregadores
+function populateEntregadorSelect() {
     entregadorSelect.innerHTML = '<option value="">Selecione um entregador</option>';
     
     entregadores.forEach(entregador => {
@@ -215,51 +125,233 @@ async function loadEntregadores() {
     });
 }
 
-// Função para carregar estatísticas
-async function loadStats() {
-    // Entregas de hoje
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const { count: todayCount, error: todayError } = await supabase
+// Carregar entregas
+async function loadEntregas() {
+    const { data, error } = await supabase
         .from('entregas')
-        .select('*', { count: 'exact' })
-        .gte('created_at', today.toISOString())
-        .lte('created_at', new Date().toISOString());
+        .select(`
+            *,
+            entregadores:nome
+        `)
+        .order('created_at', { ascending: false });
+    
+    if (error) {
+        console.error('Erro ao carregar entregas:', error);
+        return;
+    }
+    
+    entregas = data;
+    renderEntregasTable();
+}
+
+// Renderizar tabela de entregas
+function renderEntregasTable() {
+    entregasTableBody.innerHTML = '';
+    
+    entregas.forEach(entrega => {
+        const row = document.createElement('tr');
+        
+        // Formatar data
+        const data = new Date(entrega.created_at).toLocaleDateString('pt-BR');
+        
+        // Encontrar nome do entregador
+        const entregador = entregadores.find(e => e.id === entrega.entregador_id);
+        const nomeEntregador = entregador ? entregador.nome : 'Não atribuído';
+        
+        row.innerHTML = `
+            <td>${entrega.id}</td>
+            <td>${entrega.destinatario}</td>
+            <td>${entrega.endereco}</td>
+            <td><span class="status-badge status-${entrega.status}">${formatStatus(entrega.status)}</span></td>
+            <td>${nomeEntregador}</td>
+            <td>
+                <button class="action-btn" onclick="editEntrega(${entrega.id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete" onclick="deleteEntrega(${entrega.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        
+        entregasTableBody.appendChild(row);
+    });
+}
+
+// Formatar status para exibição
+function formatStatus(status) {
+    const statusMap = {
+        'pendente': 'Pendente',
+        'coletado': 'Coletado',
+        'em_transito': 'Em Trânsito',
+        'entregue': 'Entregue',
+        'cancelado': 'Cancelado'
+    };
+    
+    return statusMap[status] || status;
+}
+
+// Mostrar/ocultar formulário de nova entrega
+btnNovaEntrega.addEventListener('click', () => {
+    formEntrega.classList.toggle('hidden');
+    resetForm(entregaForm);
+});
+
+// Cancelar criação/edição de entrega
+btnCancelar.addEventListener('click', () => {
+    formEntrega.classList.add('hidden');
+    resetForm(entregaForm);
+});
+
+// Criar ou editar entrega
+entregaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const destinatario = document.getElementById('destinatario').value;
+    const endereco = document.getElementById('endereco').value;
+    const contato = document.getElementById('contato').value;
+    const entregadorId = document.getElementById('entregadorSelect').value;
+    
+    const entregaData = {
+        destinatario,
+        endereco,
+        contato,
+        entregador_id: entregadorId,
+        status: 'pendente'
+    };
+    
+    // Verificar se é uma edição ou criação
+    const isEdit = entregaForm.dataset.editId;
+    
+    if (isEdit) {
+        // Editar entrega existente
+        const { error } = await supabase
+            .from('entregas')
+            .update(entregaData)
+            .eq('id', isEdit);
+            
+        if (error) {
+            console.error('Erro ao editar entrega:', error);
+            alert('Erro ao editar entrega');
+            return;
+        }
+        
+        alert('Entrega atualizada com sucesso!');
+    } else {
+        // Criar nova entrega
+        const { error } = await supabase
+            .from('entregas')
+            .insert([entregaData]);
+            
+        if (error) {
+            console.error('Erro ao criar entrega:', error);
+            alert('Erro ao criar entrega');
+            return;
+        }
+        
+        alert('Entrega criada com sucesso!');
+    }
+    
+    // Recarregar dados e resetar formulário
+    loadEntregas();
+    formEntrega.classList.add('hidden');
+    resetForm(entregaForm);
+    updateStats();
+});
+
+// Editar entrega
+async function editEntrega(id) {
+    const entrega = entregas.find(e => e.id === id);
+    
+    if (!entrega) return;
+    
+    // Preencher formulário com dados da entrega
+    document.getElementById('destinatario').value = entrega.destinatario;
+    document.getElementById('endereco').value = entrega.endereco;
+    document.getElementById('contato').value = entrega.contato;
+    document.getElementById('entregadorSelect').value = entrega.entregador_id;
+    
+    // Marcar como edição
+    entregaForm.dataset.editId = id;
+    
+    // Mostrar formulário
+    formEntrega.classList.remove('hidden');
+}
+
+// Excluir entrega
+async function deleteEntrega(id) {
+    if (!confirm('Tem certeza que deseja excluir esta entrega?')) return;
+    
+    const { error } = await supabase
+        .from('entregas')
+        .delete()
+        .eq('id', id);
+        
+    if (error) {
+        console.error('Erro ao excluir entrega:', error);
+        alert('Erro ao excluir entrega');
+        return;
+    }
+    
+    alert('Entrega excluída com sucesso!');
+    loadEntregas();
+    updateStats();
+}
+
+// Atualizar estatísticas
+function updateStats() {
+    // Entregas hoje
+    const hoje = new Date().toLocaleDateString('pt-BR');
+    const entregasHoje = entregas.filter(e => {
+        const dataEntrega = new Date(e.created_at).toLocaleDateString('pt-BR');
+        return dataEntrega === hoje;
+    }).length;
+    
+    statsToday.textContent = entregasHoje;
     
     // Entregas pendentes
-    const { count: pendingCount, error: pendingError } = await supabase
-        .from('entregas')
-        .select('*', { count: 'exact' })
-        .eq('status', 'pendente');
+    const entregasPendentes = entregas.filter(e => e.status === 'pendente').length;
+    statsPending.textContent = entregasPendentes;
     
     // Entregas concluídas
-    const { count: completedCount, error: completedError } = await supabase
-        .from('entregas')
-        .select('*', { count: 'exact' })
-        .eq('status', 'entregue');
+    const entregasConcluidas = entregas.filter(e => e.status === 'entregue').length;
+    statsCompleted.textContent = entregasConcluidas;
     
-    if (!todayError) statsToday.textContent = todayCount;
-    if (!pendingError) statsPending.textContent = pendingCount;
-    if (!completedError) statsCompleted.textContent = completedCount;
+    // Taxa de sucesso
+    const totalEntregas = entregas.length;
+    const taxaSucesso = totalEntregas > 0 ? Math.round((entregasConcluidas / totalEntregas) * 100) : 0;
+    statsSuccessRate.textContent = `${taxaSucesso}%`;
 }
 
-// Funções auxiliares de UI
-function showMessage(message, type) {
-    loginMessage.textContent = message;
-    loginMessage.className = type;
+// Navegação entre seções
+btnEntregas.addEventListener('click', () => {
+    entregasSection.classList.remove('hidden');
+    entregadoresSection.classList.add('hidden');
+});
+
+btnEntregadores.addEventListener('click', () => {
+    entregasSection.classList.add('hidden');
+    entregadoresSection.classList.remove('hidden');
+});
+
+// Mostrar mensagens
+function showMessage(element, message, type) {
+    element.textContent = message;
+    element.className = `message ${type}`;
+    element.classList.remove('hidden');
+    
     setTimeout(() => {
-        loginMessage.textContent = '';
-        loginMessage.className = '';
-    }, 3000);
+        element.classList.add('hidden');
+    }, 5000);
 }
 
-function showDashboard() {
-    loginSection.classList.add('hidden');
-    dashboard.classList.remove('hidden');
+// Resetar formulário
+function resetForm(form) {
+    form.reset();
+    delete form.dataset.editId;
 }
 
-function showLogin() {
-    dashboard.classList.add('hidden');
-    loginSection.classList.remove('hidden');
-}
+// Inicializar aplicação
+document.addEventListener('DOMContentLoaded', () => {
+    checkAuth();
+});
