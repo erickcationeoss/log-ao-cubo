@@ -1,9 +1,53 @@
-// Configuração do Supabase (valores devem ser preenchidos)
+// Configuração do Supabase (SUBSTITUA COM SEUS VALORES)
 const SUPABASE_CONFIG = {
-    url: 'SUA_SUPABASE_URL',
-    anonKey: 'SUA_SUPABASE_ANON_KEY'
+    url: 'https://lrderyzjbznmyyjnonyq.supabase.co', // ← SUBSTITUIR
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxyZGVyeXpqYnpubXl5am5vbnlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzk4OTQsImV4cCI6MjA3MjY1NTg5NH0.cU2R8mR2e-1Ui10R3TKWu1Ux2654taRCSg9bEsZpIhQ' // ← SUBSTITUIR
 };
 
+// Inicialização do Supabase
+const supabase = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+// Inicialização segura do Supabase
+function initializeSupabase() {
+    if (!validateSupabaseConfig()) {
+        return null;
+    }
+    
+    try {
+        return supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+    } catch (error) {
+        console.error('Erro ao inicializar Supabase:', error);
+        showNotification('Erro na configuração do Supabase', 'error');
+        return null;
+    }
+}
+
+// Inicialização quando o DOM estiver carregado
+document.addEventListener('DOMContentLoaded', async function() {
+    // Inicializar Supabase primeiro
+    window.supabase = initializeSupabase();
+    
+    if (!window.supabase) {
+        // Mostrar mensagem de erro para o usuário
+        document.getElementById('heroSection').innerHTML = `
+            <div class="error-config">
+                <h2>Configuração necessária</h2>
+                <p>Por favor, configure as credenciais do Supabase no arquivo script.js</p>
+                <p>1. Acesse <a href="https://supabase.com" target="_blank">Supabase</a></p>
+                <p>2. Crie um projeto gratuito</p>
+                <p>3. Obtenha a URL e API Key</p>
+                <p>4. Substitua no código:</p>
+                <pre>const SUPABASE_CONFIG = {
+    url: 'https://seu-projeto.supabase.co',
+    anonKey: 'sua-chave-anon-aqui'
+};</pre>
+            </div>
+        `;
+        return;
+    }
+    
+    // Continuar com a inicialização normal da aplicação
+    await initApp();
+});
 // Verificar se Supabase está disponível
 if (typeof supabase === 'undefined') {
     console.error('Supabase não foi carregado. Verifique se o script do Supabase foi incluído.');
