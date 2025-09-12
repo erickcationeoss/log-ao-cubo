@@ -3,129 +3,287 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Logística | Premium</title>
+    <title>Lögistik | Shopee Filial</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=SUA_CHAVE_API&libraries=places"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="particles-js"></div>
+    
     <div class="container">
         <!-- Header com navegação -->
         <header>
             <div class="logo">
-                <i class="fas fa-shipping-fast logo-icon"></i>
-                <h1>Logística Premium</h1>
+                <i class="fas fa-rocket logo-icon"></i>
+                <h1>LÖGISTIK</h1>
+                <span class="tagline">by Shopee</span>
             </div>
             <nav>
-                <button id="btnEntregas"><i class="fas fa-box"></i> Entregas</button>
-                <button id="btnEntregadores"><i class="fas fa-truck"></i> Entregadores</button>
-                <button id="btnRelatorios"><i class="fas fa-chart-line"></i> Relatórios</button>
-                <button id="btnLogout" class="logout"><i class="fas fa-sign-out-alt"></i> Sair</button>
+                <button id="btnHome" class="nav-btn active" data-section="heroSection"><i class="fas fa-home"></i> Home</button>
+                <button id="btnEntregas" class="nav-btn" data-section="entregadorDashboard"><i class="fas fa-shipping-fast"></i> Entregas</button>
+                <button id="btnEntregadores" class="nav-btn" data-section="entregadorDashboard"><i class="fas fa-truck"></i> Entregadores</button>
+                <button id="btnProdutos" class="nav-btn" data-section="vendedorDashboard"><i class="fas fa-box-open"></i> Produtos</button>
+                <button id="btnLogin" class="nav-btn login-btn" data-section="loginSection"><i class="fas fa-user"></i> Área Restrita</button>
             </nav>
         </header>
 
-        <!-- Formulário de Login -->
-        <div id="loginSection" class="section fade-in-up">
-            <h2><i class="fas fa-lock"></i> Acesso Restrito</h2>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="email">E-mail</label>
-                    <input type="email" id="email" placeholder="seu@email.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Senha</label>
-                    <input type="password" id="password" placeholder="Sua senha" required>
-                </div>
-                <button type="submit"><i class="fas fa-sign-in-alt"></i> Entrar</button>
-            </form>
-            <div id="loginMessage" class="message"></div>
-        </div>
-
-        <!-- Dashboard Principal (inicialmente oculto) -->
-        <div id="dashboard" class="hidden">
-            <!-- Estatísticas -->
-            <div class="section fade-in">
-                <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
-                <div class="stats">
-                    <div class="stat-card">
-                        <h3>Entregas Hoje</h3>
-                        <p id="statsToday">0</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Entregas Pendentes</h3>
-                        <p id="statsPending">0</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Entregas Concluídas</h3>
-                        <p id="statsCompleted">0</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Taxa de Sucesso</h3>
-                        <p id="statsSuccessRate">0%</p>
-                    </div>
+        <!-- Seção Hero -->
+        <section id="heroSection" class="section active">
+            <div class="hero-content">
+                <h2>Logística de <span class="highlight">Alta Performance</span></h2>
+                <p>Soluções inteligentes para entregas rápidas e eficientes</p>
+                <div class="hero-buttons">
+                    <button id="btnEntregadorHero" class="hero-btn"><i class="fas fa-truck"></i> Sou Entregador</button>
+                    <button id="btnVendedorHero" class="hero-btn secondary"><i class="fas fa-store"></i> Sou Vendedor</button>
                 </div>
             </div>
+            <div class="hero-visual">
+                <div class="map-preview" id="mapPreview">
+                    <!-- Mapa será renderizado via JavaScript -->
+                </div>
+            </div>
+        </section>
 
-            <!-- Gestão de Entregas -->
-            <div id="entregasSection" class="section fade-in">
-                <h2><i class="fas fa-box"></i> Gestão de Entregas</h2>
-                <button id="btnNovaEntrega"><i class="fas fa-plus"></i> Nova Entrega</button>
+        <!-- Seção de Login/Registro -->
+        <section id="loginSection" class="section hidden">
+            <div class="login-container">
+                <div class="login-tabs">
+                    <button class="tab-btn active" data-tab="entregador">Entregador</button>
+                    <button class="tab-btn" data-tab="vendedor">Vendedor</button>
+                </div>
                 
-                <div id="formEntrega" class="hidden">
-                    <h3><i class="fas fa-edit"></i> Nova Entrega</h3>
-                    <form id="entregaForm">
+                <div class="tab-content active" id="entregadorTab">
+                    <form id="loginEntregadorForm" class="auth-form">
+                        <h3><i class="fas fa-truck"></i> Acesso Entregadores</h3>
                         <div class="form-group">
-                            <label for="destinatario">Destinatário</label>
-                            <input type="text" id="destinatario" placeholder="Nome do destinatário" required>
+                            <label for="entregadorEmail">E-mail</label>
+                            <input type="email" id="entregadorEmail" placeholder="seu@email.com" required>
                         </div>
                         <div class="form-group">
-                            <label for="endereco">Endereço</label>
-                            <input type="text" id="endereco" placeholder="Endereço completo" required>
+                            <label for="entregadorPassword">Senha</label>
+                            <input type="password" id="entregadorPassword" placeholder="Sua senha" required>
+                        </div>
+                        <button type="submit" class="auth-submit"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+                        <p class="auth-switch">Não tem conta? <a href="#" id="showRegistroEntregador">Registre-se</a></p>
+                    </form>
+
+                    <form id="registroEntregadorForm" class="auth-form hidden">
+                        <h3><i class="fas fa-user-plus"></i> Novo Entregador</h3>
+                        <div class="form-group">
+                            <label for="regEntregadorNome">Nome Completo</label>
+                            <input type="text" id="regEntregadorNome" placeholder="Seu nome completo" required>
                         </div>
                         <div class="form-group">
-                            <label for="contato">Contato</label>
-                            <input type="text" id="contato" placeholder="Telefone ou e-mail" required>
+                            <label for="regEntregadorEmail">E-mail</label>
+                            <input type="email" id="regEntregadorEmail" placeholder="seu@email.com" required>
                         </div>
                         <div class="form-group">
-                            <label for="entregadorSelect">Entregador</label>
-                            <select id="entregadorSelect" required>
-                                <option value="">Selecione um entregador</option>
+                            <label for="regEntregadorTelefone">Telefone</label>
+                            <input type="tel" id="regEntregadorTelefone" placeholder="(11) 99999-9999" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regEntregadorVeiculo">Tipo de Veículo</label>
+                            <select id="regEntregadorVeiculo" required>
+                                <option value="">Selecione...</option>
+                                <option value="moto">Moto</option>
+                                <option value="carro">Carro</option>
+                                <option value="bicicleta">Bicicleta</option>
+                                <option value="caminhao">Caminhão</option>
                             </select>
                         </div>
-                        <button type="submit"><i class="fas fa-save"></i> Salvar</button>
-                        <button type="button" id="btnCancelar" class="secondary"><i class="fas fa-times"></i> Cancelar</button>
+                        <div class="form-group">
+                            <label for="regEntregadorPassword">Senha</label>
+                            <input type="password" id="regEntregadorPassword" placeholder="Crie uma senha segura" required>
+                        </div>
+                        <button type="submit" class="auth-submit"><i class="fas fa-user-plus"></i> Registrar</button>
+                        <p class="auth-switch">Já tem conta? <a href="#" id="showLoginEntregador">Faça login</a></p>
                     </form>
                 </div>
+                
+                <div class="tab-content hidden" id="vendedorTab">
+                    <form id="loginVendedorForm" class="auth-form">
+                        <h3><i class="fas fa-store"></i> Acesso Vendedores</h3>
+                        <div class="form-group">
+                            <label for="vendedorEmail">E-mail</label>
+                            <input type="email" id="vendedorEmail" placeholder="seu@email.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vendedorPassword">Senha</label>
+                            <input type="password" id="vendedorPassword" placeholder="Sua senha" required>
+                        </div>
+                        <button type="submit" class="auth-submit"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+                        <p class="auth-switch">Não tem conta? <a href="#" id="showRegistroVendedor">Registre-se</a></p>
+                    </form>
 
-                <div id="listaEntregas">
-                    <h3><i class="fas fa-list"></i> Lista de Entregas</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Destinatário</th>
-                                <th>Endereço</th>
-                                <th>Status</th>
-                                <th>Entregador</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="entregasTableBody">
-                            <!-- As entregas serão inseridas aqui via JavaScript -->
-                        </tbody>
-                    </table>
+                    <form id="registroVendedorForm" class="auth-form hidden">
+                        <h3><i class="fas fa-store"></i> Novo Vendedor</h3>
+                        <div class="form-group">
+                            <label for="regVendedorEmpresa">Nome da Empresa</label>
+                            <input type="text" id="regVendedorEmpresa" placeholder="Nome da sua empresa" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regVendedorCNPJ">CNPJ</label>
+                            <input type="text" id="regVendedorCNPJ" placeholder="00.000.000/0000-00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regVendedorEmail">E-mail</label>
+                            <input type="email" id="regVendedorEmail" placeholder="seu@email.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regVendedorTelefone">Telefone</label>
+                            <input type="tel" id="regVendedorTelefone" placeholder="(11) 99999-9999" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regVendedorPassword">Senha</label>
+                            <input type="password" id="regVendedorPassword" placeholder="Crie uma senha segura" required>
+                        </div>
+                        <button type="submit" class="auth-submit"><i class="fas fa-user-plus"></i> Registrar</button>
+                        <p class="auth-switch">Já tem conta? <a href="#" id="showLoginVendedor">Faça login</a></p>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Entregador -->
+        <section id="entregadorDashboard" class="section hidden">
+            <div class="dashboard-header">
+                <h2><i class="fas fa-truck"></i> Painel do Entregador</h2>
+                <div class="user-info">
+                    <span id="entregadorNome">Carlos Silva</span>
+                    <button id="btnLogoutEntregador" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Sair</button>
                 </div>
             </div>
 
-            <!-- Gestão de Entregadores -->
-            <div id="entregadoresSection" class="section fade-in hidden">
-                <h2><i class="fas fa-truck"></i> Gestão de Entregadores</h2>
-                <!-- Conteúdo similar ao de entregas -->
-                <p>Funcionalidade em desenvolvimento...</p>
+            <div class="dashboard-content">
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Entregas Hoje</h3>
+                            <p id="statsEntregasHoje">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Pendentes</h3>
+                            <p id="statsEntregasPendentes">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Concluídas</h3>
+                            <p id="statsEntregasConcluidas">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ganhos Hoje</h3>
+                            <p id="statsGanhosHoje">R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-row">
+                    <div class="map-container">
+                        <h3><i class="fas fa-map-marked-alt"></i> Rotas de Entrega</h3>
+                        <div id="entregadorMap"></div>
+                    </div>
+                    
+                    <div class="entregas-list">
+                        <h3><i class="fas fa-list"></i> Próximas Entregas</h3>
+                        <div id="listaEntregas">
+                            <!-- Entregas serão carregadas via JS -->
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </section>
+
+        <!-- Dashboard Vendedor -->
+        <section id="vendedorDashboard" class="section hidden">
+            <div class="dashboard-header">
+                <h2><i class="fas fa-store"></i> Painel do Vendedor</h2>
+                <div class="user-info">
+                    <span id="vendedorEmpresa">Sua Empresa</span>
+                    <button id="btnLogoutVendedor" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Sair</button>
+                </div>
+            </div>
+
+            <div class="dashboard-content">
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Pedidos Hoje</h3>
+                            <p id="statsPedidosHoje">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Para Enviar</h3>
+                            <p id="statsParaEnviar">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-truck-loading"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Em Trânsito</h3>
+                            <p id="statsEmTransito">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Vendas Mensais</h3>
+                            <p id="statsVendasMensais">R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-row">
+                    <div class="products-management">
+                        <h3><i class="fas fa-boxes"></i> Gerenciar Produtos</h3>
+                        <button id="btnNovoProduto" class="primary-btn"><i class="fas fa-plus"></i> Novo Produto</button>
+                        
+                        <div class="products-list">
+                            <!-- Produtos serão carregados via JS -->
+                        </div>
+                    </div>
+                    
+                    <div class="orders-management">
+                        <h3><i class="fas fa-clipboard-list"></i> Pedidos Recentes</h3>
+                        <div class="orders-list">
+                            <!-- Pedidos serão carregados via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
